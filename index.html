@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Tienda — Apertura & Cierre</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f3ef;
+    --accent: #e8c547;
+    --gray: #2a2a2a;
+    --gray2: #3d3d3d;
+    --text-muted: #888;
+    --open: #4caf79;
+    --close: #e05a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  header { text-align: center; margin-bottom: 28px; padding-top: 12px; }
+  .logo-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+  .store-logo { width: 80px; height: 80px; object-fit: contain; background: #fff; border-radius: 12px; padding: 8px; }
+  .store-tag { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(38px, 10vw, 68px); line-height: 0.95; letter-spacing: 2px; }
+  h1 span { color: var(--accent); }
+  .date-bar { margin-top: 10px; font-size: 13px; color: var(--text-muted); letter-spacing: 1px; }
+
+  /* Name input */
+  .name-block {
+    background: var(--gray);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--gray2);
+  }
+  .name-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .name-input {
+    width: 100%;
+    background: var(--black);
+    border: 1px solid var(--gray2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--accent); }
+  .name-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+  /* Shift selector */
+  .shift-block {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .shift-btn {
+    flex: 1;
+    padding: 11px 8px;
+    border: 1px solid var(--gray2);
+    border-radius: 10px;
+    background: var(--gray);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .shift-btn.active { background: var(--accent); color: var(--black); border-color: var(--accent); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--gray); border-radius: 12px; padding: 6px; }
+  .tab { flex: 1; padding: 12px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--text-muted); }
+  .tab.active-open { background: var(--open); color: #fff; }
+  .tab.active-close { background: var(--close); color: #fff; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+  .progress-bar { height: 4px; background: var(--gray2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; background: var(--accent); }
+  .progress-fill.close-color { background: var(--close); }
+
+  /* Section */
+  .section { margin-bottom: 24px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 3px; color: var(--accent); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--gray2); }
+  .section-title.close-accent { color: var(--close); }
+
+  /* Item */
+  .item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--gray); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent; user-select: none; }
+  .item:active { transform: scale(0.98); }
+  .item.checked { opacity: 0.55; }
+  .item.checked-open { background: #1a2e20; border-color: #2d5a3a; }
+  .item.checked-close { background: #2e1a1a; border-color: #5a2d2d; }
+  .checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--gray2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: all 0.2s ease; font-size: 13px; }
+  .checked-open .checkbox { background: var(--open); border-color: var(--open); }
+  .checked-close .checkbox { background: var(--close); border-color: var(--close); }
+  .item-content { flex: 1; }
+  .item-text { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--white); }
+  .item.checked .item-text { text-decoration: line-through; color: var(--text-muted); }
+  .item-note { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+
+  /* Perfect Store badge */
+  .perfect-badge {
+    background: linear-gradient(135deg, #1a1a00, #2a2500);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--black);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+  }
+  .submit-btn:active { transform: scale(0.98); opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .reset-btn { width: 100%; padding: 13px; border: 1px solid var(--gray2); border-radius: 10px; background: transparent; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Banner */
+  .complete-banner { display: none; text-align: center; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+  .complete-banner.open-banner { background: #1a2e20; border: 1px solid var(--open); }
+  .complete-banner.close-banner { background: #2e1a1a; border: 1px solid var(--close); }
+  .complete-banner .emoji { font-size: 28px; margin-bottom: 6px; }
+  .complete-banner .msg { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+  .complete-banner .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: var(--gray); border-radius: 16px; padding: 28px 24px; max-width: 360px; width: 100%; text-align: center; border: 1px solid var(--gray2); }
+  .modal-emoji { font-size: 40px; margin-bottom: 12px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; margin-bottom: 8px; color: var(--accent); }
+  .modal-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+  .modal-summary { background: var(--black); border-radius: 10px; padding: 14px; text-align: left; margin-bottom: 20px; font-size: 13px; line-height: 1.8; color: var(--white); }
+  .modal-summary strong { color: var(--accent); }
+  .modal-close { width: 100%; padding: 13px; border: 1px solid var(--gray2); border-radius: 10px; background: transparent; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAioAAAIqCAMAAAA97pGBAAAAkFBMVEX///8fFA8AAAASAADMy8sVBAAZDAT29fWysLBfWFZCPDlwa2kdEQwbDggMAADv7u6IhILX1dTp6OiopaSfnZyVkY/a2dgxJyJ9eHY2LSkVBQArIyCOiohJQj/g395nYmC/vbyvrKt3cnC+u7okGRTHxcRTTUpYUlBpZGI7NDGioJ8mHRhKREFiW1k6MCxVTksD1OpRAAAVxElEQVR4nO3d2ULizBaGYahIcEiC4ISoiPPUdt//3e1We0utkEqtTORPfJ+DPmmCgXykKjUOBgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoCUPh3towPPruO1LW6/xk0lGaEBgzEPbV7dWe2aIhsRm2vblrdGKpDRocdX29a3RPGn76+w189r2Ba7PQdD2t9lrUTBr+wrXhqg0Kzlo+wrXhqg0rD9PQUSlYeF+X1pX1lGJA9Qn+s6KOWn7GtfkOyrx/u0BanPxnZVotGz7ItfjOyrJZdun0itH6/aq4Lrtk6nHOiqHbZ9Kvzwu1kXQbtsnUwui0pDT9W0l/D1p+2zqQFSacrhuBze9+G6JSlPG66egKOlDtyFRacydVbN9bPtkakBUmvPLqtketX0y1RGV5szWt5X4rfs1W6LSoMt1VnrQbUhUmnQRrmu2O22fTFVEpUkPVuPKftsnUxVRadSz1bhy3PbJVERUGjVbrBtXFh0fEEdUmnVsNa68t30y1RCVhl1ZjSt3bZ9MJUSlYTvJdxEUnrV9MpUQlaZZ02e6PSaIqDRtdhZ/12xNlwfEEZXG3axrtqMudxsSleY9rWdFdHlAHFFp3tQauRJ2d6oHUdkCu9uwu18zUdmC8ct3t+HQnLZ9NmURlW2wBsSFv9o+mbKIylY8WzXbrg6IIypbsbTHZHd0QBxR2Y4Tq2Z72/bJlENUtsSu2XZzQBxR2ZIdq2b70vbJlEJUtuXWGhDXyXU0iMq2TKyabdDFbkOisjU3HV9Hg6hsjz3bcNX2yRRHVLZn2u11NIjKFh2us2K6NyCOqGzROLRqtp1bR4OobNOuVbPda/tkiiIqW/VntC6Cbto+mYKIylYtrXU0zjo225CobJc9IG7e9skUQ1S27O17qkf81q3bClHZMmtAXMd6mInKtu0FRAUq6wFxRAW5JhFRgcokJipQISpQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipQIipfdsrI2vlxLF6h2sRtaR/xkLed5GkNJ1gaUfk0PjclZC04PxWvUK0zfikOyVsR6b3gCda6bihR+TTeX+96o5YdlcR6RXCg+eMn9iG5Ufn+0MoTJCofiApRUSIqREWJqBAVJaJCVJSIClFRIipERYmoEBUlokJUlOqOyihOi8TXHm38f9x2VDbPKH2CROVDzVF5vDhLu7CzEr1t/P9ZkHVVtxiVzTNKGam6oLSIitOpsa/gkfKorUUl/l1rZ6AfUXGaiqgca4/aWlTOt7w3KVFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxIioSUXEiKhJRcSIqElFxqiEqi/flqddybs/uYXJH7ToRlWE0Cvxi+4gCU8YuPN4e6/gavhEVpzqiMowUxAEFopIxN1YIrur4Gr4RFadaolJYjdPbQ6LyiagQFSWiQlSUiApRUSIqREWJqBAVJaJCVJSIClFR6khUNE1wog2uSBOcx4KofOpGVO59je8f7u2s6KMS0Vqr04moBM/jidf4slTPcnS+4+uLzFoBszyi4sQgBImoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4ERWJqDgRFYmoOBEViag4/dejwrKBSj8+KsP7pz2PX7XOGSMqTv/1qAzDhYeZKk9ahag4/eej4kVUPhEVoqJEVIiKElEhKkpEhagoERWiokRUiIoSUSEqSkSFqCg1H5UdY1NHRRz1rDnkUhySF5VrUwxR+dB8VGavR2uv2m99Io5aaQ7ZsQ85zusEXB0V8lpr3zNRgRJRgRJRgRJRgRJRgRJRgRJRgRJRgRJRgRJR2a7Jv/1XtjyHpw5E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" alt="The Box" class="store-logo" />
+  </div>
+  <div class="store-tag">Sistema de tienda</div>
+  <h1>APERTURA<br><span>&</span> CIERRE</h1>
+  <div class="date-bar" id="dateBar"></div>
+</header>
+
+<div class="perfect-badge">
+  ⭐ <span>Estándar Perfect Store — cada tarea importa</span>
+</div>
+
+<div class="name-block">
+  <div class="name-label">¿Quién está completando este checklist?</div>
+  <input class="name-input" id="nameInput" type="text" placeholder="Escribe tu nombre aquí..." />
+</div>
+
+<div class="shift-block">
+  <button class="shift-btn" onclick="setShift('Apertura')">☀️ Apertura</button>
+  <button class="shift-btn" onclick="setShift('Cierre')">🌙 Cierre</button>
+  <button class="shift-btn" onclick="setShift('Turno completo')">🔄 Turno completo</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active-open" onclick="switchTab('open')">☀️ Apertura</button>
+  <button class="tab" onclick="switchTab('close')">🌙 Cierre</button>
+</div>
+
+<div id="completeBanner" class="complete-banner open-banner" style="display:none">
+  <div class="emoji" id="bannerEmoji">🚀</div>
+  <div class="msg" id="bannerMsg">¡APERTURA COMPLETA!</div>
+  <div class="sub" id="bannerSub">Todo listo para vender hoy 🔥</div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span>Progreso</span>
+    <span id="progressText">0 / 0</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<div id="checklistContainer"></div>
+
+<button class="submit-btn" id="submitBtn" onclick="submitChecklist()">ENVIAR REPORTE ↗</button>
+<button class="reset-btn" onclick="resetAll()">↺ Reiniciar checklist</button>
+
+<!-- Modal confirmación -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-emoji">✅</div>
+    <div class="modal-title">¡REPORTE ENVIADO!</div>
+    <div class="modal-sub">Tu jefe recibirá este resumen. Buen trabajo hoy.</div>
+    <div class="modal-summary" id="modalSummary"></div>
+    <button class="modal-close" onclick="closeModal()">CERRAR</button>
+  </div>
+</div>
+
+<script>
+const data = {
+  open: {
+    sections: [
+      {
+        title: "🧹 Limpieza — Perfect Store",
+        items: [
+          { text: "Barrer y limpiar el piso de toda la tienda", note: "Estándar Perfect Store: piso siempre impecable" },
+          { text: "Limpiar espejos y superficies visibles", note: "" },
+          { text: "Limpiar mostrador y zona de caja", note: "" },
+          { text: "Revisar y limpiar zona de probado", note: "Alfombras, asientos, espejos" },
+        ]
+      },
+      {
+        title: "🔑 Acceso y Seguridad",
+        items: [
+          { text: "Desactivar alarma al ingresar", note: "Verificar que el código funciona correctamente" },
+          { text: "Encender luces de tienda y escaparate", note: "" },
+          { text: "Revisar que no haya daños o anomalías", note: "Puertas, vidrieras, mobiliario" },
+        ]
+      },
+      {
+        title: "💰 Caja",
+        items: [
+          { text: "Abrir caja y verificar fondo inicial", note: "Confirmar monto y registrar diferencias si las hay" },
+          { text: "Encender terminal / punto de venta (POS)", note: "Confirmar que funciona correctamente" },
+          { text: "Verificar conexión a internet", note: "" },
+        ]
+      },
+      {
+        title: "👟 Exhibición — Perfect Store",
+        items: [
+          { text: "Verificar que no haya espacios vacíos en vitrinas", note: "Reponer desde bodega si falta producto" },
+          { text: "Revisar que zapatillas estén ordenadas por categoría", note: "Sin precios en exhibición — el asesor informa al abordar" },
+          { text: "Verificar exhibición de complementos y accesorios", note: "Prendas, sandalias, productos de limpieza" },
+          { text: "Confirmar que asientos para clientes estén disponibles", note: "" },
+        ]
+      },
+      {
+        title: "👥 Equipo",
+        items: [
+          { text: "Revisar stock crítico del día", note: "Identificar tallas o modelos con poco inventario" },
+          { text: "Briefing de equipo (máx. 5 minutos)", note: "Novedades del día, metas, distribución de tareas" },
+        ]
+      }
+    ]
+  },
+  close: {
+    sections: [
+      {
+        title: "🧹 Limpieza — Perfect Store",
+        items: [
+          { text: "Barrer y limpiar el piso de toda la tienda", note: "Dejar impecable para el día siguiente" },
+          { text: "Limpiar espejos y superficies visibles", note: "" },
+          { text: "Limpiar mostrador y zona de caja", note: "" },
+          { text: "Sacar basura", note: "" },
+        ]
+      },
+      {
+        title: "👟 Exhibición — Perfect Store",
+        items: [
+          { text: "Ordenar zapatillas en vitrinas — sin espacios vacíos", note: "Dejar todo como debe encontrarse mañana" },
+          { text: "Regresar a bodega producto fuera de lugar", note: "" },
+          { text: "Organizar zona de complementos y accesorios", note: "" },
+          { text: "Acomodar asientos y alfombras de prueba", note: "" },
+          { text: "Revisar que no queden artículos olvidados por clientes", note: "" },
+        ]
+      },
+      {
+        title: "💰 Caja y Ventas",
+        items: [
+          { text: "Hacer arqueo de caja", note: "Contar efectivo y comparar con ventas del sistema" },
+          { text: "Registrar ventas totales del día", note: "Efectivo, tarjeta y/o transferencia por separado" },
+          { text: "Reportar diferencias si las hay", note: "Sobrantes o faltantes deben documentarse" },
+          { text: "Guardar efectivo según procedimiento de la tienda", note: "" },
+        ]
+      },
+      {
+        title: "🔒 Seguridad y Cierre",
+        items: [
+          { text: "Apagar pantallas y equipos electrónicos", note: "La PC queda encendida si es política de la tienda" },
+          { text: "Verificar que no quede nadie en tienda", note: "" },
+          { text: "Apagar luces del interior", note: "Dejar solo luces de seguridad si aplica" },
+          { text: "Activar alarma", note: "" },
+          { text: "Cerrar y asegurar puerta principal", note: "Verificar que quede bien cerrada" },
+        ]
+      }
+    ]
+  }
+};
+
+let currentTab = 'open';
+let checked = { open: {}, close: {} };
+let selectedShift = '';
+
+function setShift(shift) {
+  selectedShift = shift;
+  document.querySelectorAll('.shift-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(shift.split(' ')[0]) || b.textContent.includes(shift));
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab')[0].className = 'tab' + (tab === 'open' ? ' active-open' : '');
+  document.querySelectorAll('.tab')[1].className = 'tab' + (tab === 'close' ? ' active-close' : '');
+  render();
+}
+
+function render() {
+  const tab = currentTab;
+  let html = '';
+  data[tab].sections.forEach((section, si) => {
+    html += `<div class="section"><div class="section-title${tab === 'close' ? ' close-accent' : ''}">${section.title}</div>`;
+    section.items.forEach((item, ii) => {
+      const key = `${si}-${ii}`;
+      const isChecked = checked[tab][key];
+      const cc = isChecked ? (tab === 'open' ? ' checked checked-open' : ' checked checked-close') : '';
+      html += `<div class="item${cc}" onclick="toggle('${key}')">
+        <div class="checkbox">${isChecked ? '✓' : ''}</div>
+        <div class="item-content">
+          <div class="item-text">${item.text}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById('checklistContainer').innerHTML = html;
+  updateProgress();
+}
+
+function toggle(key) {
+  checked[currentTab][key] = !checked[currentTab][key];
+  render();
+}
+
+function updateProgress() {
+  const tab = currentTab;
+  let total = 0, done = 0;
+  data[tab].sections.forEach((s, si) => s.items.forEach((_, ii) => {
+    total++;
+    if (checked[tab][`${si}-${ii}`]) done++;
+  }));
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+  const pct = total > 0 ? (done / total) * 100 : 0;
+  const fill = document.getElementById('progressFill');
+  fill.style.width = pct + '%';
+  fill.className = 'progress-fill' + (tab === 'close' ? ' close-color' : '');
+  const banner = document.getElementById('completeBanner');
+  if (done === total && total > 0) {
+    banner.className = `complete-banner ${tab === 'open' ? 'open-banner' : 'close-banner'}`;
+    document.getElementById('bannerEmoji').textContent = tab === 'open' ? '🚀' : '🌙';
+    document.getElementById('bannerMsg').textContent = tab === 'open' ? '¡APERTURA COMPLETA!' : '¡CIERRE COMPLETO!';
+    document.getElementById('bannerSub').textContent = tab === 'open' ? 'Todo listo para vender hoy 🔥' : 'Buen trabajo hoy, hasta mañana 👏';
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function submitChecklist() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { alert('Por favor escribe tu nombre antes de enviar.'); return; }
+  if (!selectedShift) { alert('Por favor selecciona tu turno antes de enviar.'); return; }
+
+  // Build summary
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = now.toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' });
+
+  let openDone = 0, openTotal = 0, closeDone = 0, closeTotal = 0;
+  data.open.sections.forEach((s,si) => s.items.forEach((_,ii) => { openTotal++; if(checked.open[`${si}-${ii}`]) openDone++; }));
+  data.close.sections.forEach((s,si) => s.items.forEach((_,ii) => { closeTotal++; if(checked.close[`${si}-${ii}`]) closeDone++; }));
+
+  const pctOpen = Math.round((openDone/openTotal)*100);
+  const pctClose = Math.round((closeDone/closeTotal)*100);
+
+  document.getElementById('modalSummary').innerHTML = `
+    <strong>Asesor:</strong> ${name}<br>
+    <strong>Turno:</strong> ${selectedShift}<br>
+    <strong>Fecha:</strong> ${dateStr}<br>
+    <strong>Hora de envío:</strong> ${timeStr}<br><br>
+    <strong>Apertura:</strong> ${openDone}/${openTotal} tareas (${pctOpen}%)<br>
+    <strong>Cierre:</strong> ${closeDone}/${closeTotal} tareas (${pctClose}%)
+  `;
+
+  // Build WhatsApp message
+  const msg = `✅ *REPORTE DE TIENDA*\n👤 Asesor: ${name}\n🔄 Turno: ${selectedShift}\n📅 ${dateStr} — ${timeStr}\n\n☀️ Apertura: ${openDone}/${openTotal} (${pctOpen}%)\n🌙 Cierre: ${closeDone}/${closeTotal} (${pctClose}%)\n\n_Enviado desde el sistema de checklist_`;
+
+  document.getElementById('modalOverlay').classList.remove('hidden');
+
+  // Open WhatsApp after short delay
+  setTimeout(() => {
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  }, 600);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+}
+
+function resetAll() {
+  if (confirm('¿Reiniciar el checklist completo?')) {
+    checked = { open: {}, close: {} };
+    document.getElementById('nameInput').value = '';
+    selectedShift = '';
+    document.querySelectorAll('.shift-btn').forEach(b => b.classList.remove('active'));
+    render();
+  }
+}
+
+// Date
+const now = new Date();
+const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+document.getElementById('dateBar').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+render();
+</script>
+</body>
+</html>
